@@ -11,7 +11,7 @@
 
 3. **Install Required Libraries**:
    - Open the Library Manager by navigating to Sketch > Include Library > Manage Libraries...
-   - Search for `M5Unified` and `M5GFX` and install them. Make sure these libraries are compatible with the M5Cardputer.
+   - Search for `M5Unified` and `M5GFX` and install them.
 
 4. **Load the Sketch**:
    - Copy the provided code into a new Arduino sketch.
