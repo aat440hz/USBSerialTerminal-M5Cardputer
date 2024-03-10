@@ -24,51 +24,44 @@ void setup() {
 
 void loop() {
     M5Cardputer.update();
+
     // Check if there is incoming serial data over USB
     while (Serial.available()) {
         char incomingByte = Serial.read();
-        // Only add printable characters or new line, exclude control characters
         if (isPrintable(incomingByte) || incomingByte == '\n') {
-            data += incomingByte;
-        }
-        
-        // If incomingByte is newline, print and reset data string
-        if (incomingByte == '\n') {
-            canvas.println(data);
+            if (incomingByte == '\n') {
+                canvas.println();
+            } else {
+                canvas.print(incomingByte);
+            }
+            // Only push the sprite update for incoming data, not for typed characters
             canvas.pushSprite(4, 4);
-            data = "> ";
         }
     }
 
     // Keyboard input handling
-    if (M5Cardputer.Keyboard.isChange()) {
-        if (M5Cardputer.Keyboard.isPressed()) {
-            Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+        Keyboard_Class::KeysState status = M5Cardputer.Keyboard.keysState();
 
-            // Handling keyboard input
-            for (auto i : status.word) {
-                if (i) { // Check if character is not null
-                    data += i;
-                    Serial.write(i); // Send character over USB Serial
-                }
+        for (auto i : status.word) {
+            if (i && i != '\b') { // Check if character is not null and not backspace
+                data += i; // Accumulate typing in the buffer but don't display it in the terminal feed
             }
-
-            if (status.del && data.length() > 2) { // Prevent deletion of "> "
-                data.remove(data.length() - 1);
-                Serial.write('\b'); // Send backspace character over USB Serial
-            }
-
-            if (status.enter) {
-                Serial.println(); // Send newline over USB Serial to emulate Enter key
-                data.remove(0, 2); // Clear the "> " at the beginning of the string
-                canvas.println("> " + data);
-                canvas.pushSprite(4, 4);
-                data = "> ";
-            }
-
-            // Clear and redraw the text area
-            M5Cardputer.Display.fillRect(0, M5Cardputer.Display.height() - 28, M5Cardputer.Display.width(), 25, BLACK);
-            M5Cardputer.Display.drawString(data, 4, M5Cardputer.Display.height() - 24);
         }
+
+        if (status.del && data.length() > 2) { // Handle backspace by removing last character
+            data.remove(data.length() - 1);
+        }
+
+        if (status.enter) {
+            Serial.println(data.substring(2)); // Send buffered data over serial, excluding the "> " prompt
+            canvas.println(data); // Now display the buffered line in the terminal feed
+            data = "> "; // Reset buffer for new input
+            canvas.pushSprite(4, 4); // Update the display to show the new line in terminal feed
+        }
+
+        // Refresh the input area with current buffer content (real-time typing feedback)
+        M5Cardputer.Display.fillRect(0, M5Cardputer.Display.height() - 28, M5Cardputer.Display.width(), 24, BLACK);
+        M5Cardputer.Display.drawString(data, 4, M5Cardputer.Display.height() - 24);
     }
 }
