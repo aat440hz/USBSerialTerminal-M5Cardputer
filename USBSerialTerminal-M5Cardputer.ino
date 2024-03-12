@@ -1,6 +1,5 @@
 #include "M5Cardputer.h"
 #include "M5GFX.h"
-#include <M5Unified.h> // Ensure broader support with M5Stack devices
 
 M5Canvas canvas(&M5Cardputer.Display);
 String data = "> ";
