@@ -5,11 +5,11 @@ M5Canvas canvas(&M5Cardputer.Display);
 String data = "> ";
 unsigned long lastKeyPressTime = 0; // Store the last key press time
 const unsigned long debounceDelay = 200; // Debounce delay in milliseconds
+bool baudRateDetected = false;
 
 void setup() {
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);
-    Serial.begin(115200); // Start Serial over USB at 115200 baud rate
     M5Cardputer.Display.setRotation(1);
     M5Cardputer.Display.setTextSize(1.0);
     M5Cardputer.Display.drawRect(0, 0, M5Cardputer.Display.width(), M5Cardputer.Display.height() - 28, GREEN);
@@ -24,6 +24,10 @@ void setup() {
 }
 
 void loop() {
+    if (!baudRateDetected) {
+        detectBaudRate();
+    }
+    
     M5Cardputer.update();
     unsigned long currentTime = millis();
 
@@ -66,5 +70,19 @@ void loop() {
         M5Cardputer.Display.drawString(data, 4, M5Cardputer.Display.height() - 24);
         
         lastKeyPressTime = currentTime; // Update the last key press time
+    }
+}
+
+void detectBaudRate() {
+    Serial.begin(9600); // Start with a low baud rate
+    delay(10);
+    while (!Serial && millis() < 5000) {
+        // Wait for Serial port to be ready
+    }
+    if (Serial) {
+        baudRateDetected = true;
+        // Here you can add code to check received data to confirm baud rate
+        // For simplicity, let's wait for a short time before continuing
+        delay(2000);
     }
 }
